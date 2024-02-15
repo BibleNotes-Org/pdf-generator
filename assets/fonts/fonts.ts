@@ -1,58 +1,72 @@
-const dir = `${Deno.cwd()}/assets/fonts`
-console.log(dir)
+const dir = `${Deno.cwd()}/assets/fonts`;
+const allegreya = `${dir}/Alegreya`;
+const ws = `${dir}/WorkSans`;
+const gb = `${dir}/GowunBatang`;
 
 export const Alegreya: FontFamily = {
-  name: "Alegreya",
   regular: {
     normal: {
-      id: "Alegreya-Regular",
-      path: `${dir}/Alegreya/Alegreya-Regular.ttf`,
+      id: "AL-Regular",
+      path: `${allegreya}/Alegreya-Regular.ttf`,
     },
     italic: {
-      id: "Alegreay-Italic",
-      path: `${dir}/Alegreya/Alegreya-Italic.ttf`,
+      id: "AL-Italic",
+      path: `${allegreya}/Alegreya-Italic.ttf`,
     },
   },
   bold: {
     normal: {
-      id: "Alegreya-Bold",
-      path: `${dir}/Alegreya/Alegreya-Bold.ttf`,
+      id: "AL-Bold",
+      path: `${allegreya}/Alegreya-Bold.ttf`,
     },
     italic: {
-      id: "Alegreya-Bold-Italic",
-      path: `${dir}/Alegreya/Alegreya-BoldItalic.ttf`,
+      id: "AL-Bold-Italic",
+      path: `${allegreya}/Alegreya-BoldItalic.ttf`,
     },
   },
   medium: {
     normal: {
-      id: "Alegreya-Medium", 
-      path: `${dir}/Alegreya/Alegreya-Medium.ttf`,
+      id: "AL-Medium",
+      path: `${allegreya}/Alegreya-Medium.ttf`,
     },
     italic: {
-      id: "Alegreya-Medium-Italic",
-      path: `${dir}/Alegreya/Alegreya-MediumItalic.ttf`,
+      id: "AL-Medium-Italic",
+      path: `${allegreya}/Alegreya-MediumItalic.ttf`,
     },
   },
 };
 
 export const WorkSans: FontFamily = {
-  name: "WorkSans",
   regular: {
     normal: {
       id: "WorkSans-Regular",
-      path: `${dir}/WorkSans/WorkSans-Regular.ttf`,
+      path: `${ws}/WorkSans-Regular.ttf`,
     },
     italic: {
       id: "WorkSans-Italic",
-      path:  `${dir}/WorkSans/WorkSans-Italic.ttf`,
+      path: `${ws}/WorkSans-Italic.ttf`,
     },
   },
 };
 
-export const fonts = [Alegreya, WorkSans];
+export const GowunBatang: FontFamily = {
+  regular: {
+    normal: {
+      id: "GB-Regular",
+      path: `${gb}/GowunBatang-Regular.ttf`,
+    },
+  },
+  bold: {
+    normal: {
+      id: "GB-Bold",
+      path: `${gb}/GowunBatang-Bold.ttf`,
+    },
+  },
+};
+
+export const fonts = [WorkSans, GowunBatang, Alegreya];
 
 interface FontFamily {
-  name: string;
   regular?: Font;
   bold?: Font;
   medium?: Font;
@@ -60,7 +74,7 @@ interface FontFamily {
 
 interface Font {
   normal: FontStyle;
-  italic: FontStyle;
+  italic?: FontStyle;
 }
 
 interface FontStyle {

@@ -17,11 +17,10 @@ doc.pipe(mod.createWriteStream("./out.pdf"));
 utils.registerFonts(doc);
 
 utils.writeTitle(doc, "Chapter 1")
-
 utils.writeText(doc, descs.desc1)
 
 const quote: Quote = { content: descs.quote, verse: descs.verse };
 utils.writeQuote(doc, quote);
 
 doc.end();
-console.log("PDF Generated successfully");
+console.log("PDF Generated Successfully");
