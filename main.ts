@@ -1,7 +1,8 @@
 import { Writer } from "./src/writer/writer.ts";
-import { book } from "./src/writer/sample/book.ts";
+import { getBookFrom } from "./src/book_gen/gen.ts";
 
 const writer = new Writer();
 writer.init();
 
-writer.write(book)
+const book = await getBookFrom("src/book_gen/sample");
+writer.write(book);

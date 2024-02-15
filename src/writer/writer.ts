@@ -1,7 +1,7 @@
 // @deno-types="npm:@types/jspdf"
 import { jsPDF, TextOptionsLight } from "npm:jspdf";
 
-import { Book, Chapter, Quote } from "./types.ts";
+import { Book, Chapter, Quote, Section } from "./types.ts";
 
 import * as dims from "./styles/dimensions.ts";
 import { Alegreya, GowunBatang, WorkSans } from "../../assets/fonts/fonts.ts";
@@ -53,21 +53,14 @@ export class Writer {
   }
 
   write(book: Book): void {
+    this.writeCover(book);
+
     for (let i = 0; i < book.chapters.length; i++) {
       const chap = book.chapters[i];
       this.writeChapter(chap);
 
       for (let i = 0; i < chap.sections.length; i++) {
-        const sect = chap.sections[i];
-
-        for (const content of sect.contents) {
-          if (typeof content === "string") {
-            this.writeText(content);
-          } else {
-            this.writeQuote(content);
-            this.yPos += this.lineHeight;
-          }
-        }
+        this.writeSection(chap.sections[i]);
       }
 
       this.doc.addPage();
@@ -81,23 +74,49 @@ export class Writer {
    * Writes the given text to the PDF document, wrapping it if necessary to fit within the page dimensions.
    * @param text the text to write
    */
-  writeText(text: string): void {
-    this.doc.setFont("GowunBatang", "normal");
+  private writeText(text: string): void {
+    this.doc.setFontSize(14);
 
     const texts = this.doc.splitTextToSize(text, this.pWidth);
     this.render(texts);
+    this.yPos += this.lineHeight;
   }
 
-  writeChapter(chapter: Chapter): void {
+  private writeChapter(chapter: Chapter): void {
     this.doc.setFont("Alegreya", "bold");
+    this.doc.setFontSize(14);
 
     const text = `${chapter.index}. ${chapter.name.toUpperCase()}`;
     const texts = this.doc.splitTextToSize(text, this.pWidth);
     this.render(texts);
+
+    this.yPos += this.lineHeight;
   }
 
-  writeQuote(quote: Quote): void {
+  private writeSection(section: Section): void {
+    if (section.heading) {
+      this.doc.setFont("GowunBatang", "bold");
+      this.doc.setFontSize(14);
+      this.writeText(section.heading);
+    }
+
+    for (const content of section.contents) {
+      if (typeof content === "string") {
+        this.doc.setFont("GowunBatang", "normal");
+        this.writeText(content);
+      } else {
+        this.writeQuote(content);
+      }
+    }
+
+    this.yPos += this.lineHeight * 3;
+  }
+
+  private writeQuote(quote: Quote): void {
+    this.yPos += this.lineHeight;
+
     this.doc.setFont("Alegreya", "italic");
+    this.doc.setFontSize(14);
 
     const w = this.pWidth;
     const texts = this.doc.splitTextToSize(quote.content, w);
@@ -105,10 +124,29 @@ export class Writer {
 
     const texts2 = this.doc.splitTextToSize(quote.verse, w);
     this.render(texts2);
+
+    this.yPos += this.lineHeight * 2;
   }
 
-  save(): void {
+  private writeCover(book: Book): void {
+    this.doc.setFont("Alegreya", "bold");
+    this.doc.setFontSize(30);
+    this.render([book.title]);
+
+    this.doc.setFont("GowunBatang", "normal");
+    this.doc.setFontSize(14);
+
+    for (const chapter of book.chapters) {
+      this.render([`${chapter.index}. ${chapter.name}`]);
+      this.yPos += this.lineHeight * 0.5;
+    }
+
+    this.doc.addPage();
+    this.yPos = dims.padding;
+  }
+
+  private save(): void {
     this.doc.save("out.pdf");
-    console.log("PDF Generated Successfully");
+    console.log("PDF Generated successfully");
   }
 }
