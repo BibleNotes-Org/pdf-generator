@@ -10,8 +10,6 @@ One sunny morning, as Max and Benjamin were exploring a field of wildflowers, th
 With their combined efforts, Max and Benjamin managed to calm Sammy down and assure him that they would help him find his way back home. Max used his keen sense of smell to follow the scent of acorns, while Benjamin darted ahead, searching for familiar landmarks.
 
 As they traveled through the forest, they encountered various challenges, such as crossing a swiftly flowing stream and navigating through thick underbrush. But Max's strength and determination, coupled with Benjamin's resourcefulness and quick thinking, helped them overcome each obstacle.
-
-As Sammy and Benjamin were exploring the village, Max and Benjamin found a way out of the forest. Sammy and Benjamin were able to find a way out of the forest, but Sammy and Benjamin were unable to find a way out of the forest. Sammy and Benjamin were able to find a way out of the forest, but Sammy and Benjamin were unable to find a way out of the forest.
 `
 
 export const desc2 = `
