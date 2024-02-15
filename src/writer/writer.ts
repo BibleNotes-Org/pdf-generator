@@ -4,7 +4,7 @@ import { jsPDF, TextOptionsLight } from "npm:jspdf";
 import { Book, Chapter, Quote } from "./types.ts";
 
 import * as dims from "./styles/dimensions.ts";
-import { Alegreya, GowunBatang, WorkSans } from "../assets/fonts/fonts.ts";
+import { Alegreya, GowunBatang, WorkSans } from "../../assets/fonts/fonts.ts";
 
 export class Writer {
   doc: jsPDF;
