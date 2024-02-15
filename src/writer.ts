@@ -1,7 +1,7 @@
 // @deno-types="npm:@types/jspdf"
 import { jsPDF, TextOptionsLight } from "npm:jspdf";
 
-import { Chapter, Quote } from "./types.ts"
+import { Book, Chapter, Quote } from "./types.ts";
 
 import * as dims from "./styles/dimensions.ts";
 import { Alegreya, GowunBatang, WorkSans } from "../assets/fonts/fonts.ts";
@@ -52,6 +52,31 @@ export class Writer {
     }
   }
 
+  write(book: Book): void {
+    for (let i = 0; i < book.chapters.length; i++) {
+      const chap = book.chapters[i];
+      this.writeChapter(chap);
+
+      for (let i = 0; i < chap.sections.length; i++) {
+        const sect = chap.sections[i];
+
+        for (const content of sect.contents) {
+          if (typeof content === "string") {
+            this.writeText(content);
+          } else {
+            this.writeQuote(content);
+            this.yPos += this.lineHeight;
+          }
+        }
+      }
+
+      this.doc.addPage();
+      this.yPos = dims.padding;
+    }
+
+    this.save();
+  }
+
   /**
    * Writes the given text to the PDF document, wrapping it if necessary to fit within the page dimensions.
    * @param text the text to write
@@ -66,7 +91,7 @@ export class Writer {
   writeChapter(chapter: Chapter): void {
     this.doc.setFont("Alegreya", "bold");
 
-    const text = `${chapter.index}. ${chapter.name.toUpperCase()}`
+    const text = `${chapter.index}. ${chapter.name.toUpperCase()}`;
     const texts = this.doc.splitTextToSize(text, this.pWidth);
     this.render(texts);
   }
