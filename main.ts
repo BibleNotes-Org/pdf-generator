@@ -1,5 +1,5 @@
-import { genSampleBook } from "./src/books/utils.ts";
+import { GenSampleBook } from "./src/books/utils.ts";
 
-genSampleBook();
+GenSampleBook();
 
-// genBooksFrom("/Users/mac/Downloads/Programs/personal/notes_pdf/books");
+// GenBooksFrom("/Users/mac/Downloads/Programs/personal/notes_pdf/books");
