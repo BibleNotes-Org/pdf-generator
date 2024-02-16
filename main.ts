@@ -1,8 +1,5 @@
-import { Writer } from "./src/writer/writer.ts";
-import { getBookFrom } from "./src/book_gen/gen.ts";
+import { genSampleBook } from "./src/books/utils.ts";
 
-const writer = new Writer();
-writer.init();
+genSampleBook();
 
-const book = await getBookFrom("src/book_gen/sample");
-writer.write(book);
+// genBooksFrom("/Users/mac/Downloads/Programs/personal/notes_pdf/books");

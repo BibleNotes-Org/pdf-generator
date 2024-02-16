@@ -1,10 +1,9 @@
-// @deno-types="npm:@types/jspdf"
 import { jsPDF, TextOptionsLight } from "npm:jspdf";
 
 import { Book, Chapter, Quote, Section } from "./types.ts";
 
 import * as dims from "./styles/dimensions.ts";
-import { Alegreya, GowunBatang, WorkSans } from "../../assets/fonts/fonts.ts";
+import { Alegreya, GowunBatang } from "../../assets/fonts/fonts.ts";
 
 export class Writer {
   doc: jsPDF;
@@ -17,16 +16,20 @@ export class Writer {
     this.yPos = dims.padding;
   }
 
-  public get pHeight(): number {
+  private get pHeight(): number {
     return this.doc.internal.pageSize.getHeight() - dims.padding;
   }
 
-  public get pWidth(): number {
+  private get pWidth(): number {
     return dims.size.width - (2 * dims.padding);
   }
 
-  public get lineHeight(): number {
+  private get lineHeight(): number {
     return this.doc.getLineHeight();
+  }
+
+  private get xMid(): number {
+    return this.doc.internal.pageSize.getWidth() / 2;
   }
 
   init(): void {
@@ -36,8 +39,6 @@ export class Writer {
 
     this.doc.addFont(GowunBatang.regular!.normal.path, "GowunBatang", "normal");
     this.doc.addFont(GowunBatang.bold!.normal!.path, "GowunBatang", "bold");
-
-    this.doc.addFont(WorkSans.regular!.normal.path, "WorkSans", "normal");
   }
 
   private render(texts: string[], options?: TextOptionsLight): void {
@@ -52,7 +53,9 @@ export class Writer {
     }
   }
 
-  write(book: Book): void {
+  write(book: Book, outputPath?: string): void {
+    this.init();
+
     this.writeCover(book);
 
     for (let i = 0; i < book.chapters.length; i++) {
@@ -63,11 +66,13 @@ export class Writer {
         this.writeSection(chap.sections[i]);
       }
 
-      this.doc.addPage();
-      this.yPos = dims.padding;
+      if (i != book.chapters.length - 1) {
+        this.doc.addPage();
+        this.yPos = dims.padding;
+      }
     }
 
-    this.save();
+    this.save(outputPath);
   }
 
   /**
@@ -78,19 +83,35 @@ export class Writer {
     this.doc.setFontSize(14);
 
     const texts = this.doc.splitTextToSize(text, this.pWidth);
-    this.render(texts);
+    this.render(texts, { maxWidth: this.pWidth, align: "justify" });
     this.yPos += this.lineHeight;
   }
 
   private writeChapter(chapter: Chapter): void {
-    this.doc.setFont("Alegreya", "bold");
+    this.doc.setFont("Alegreya", "normal");
+    this.doc.setFontSize(30);
+    this.yPos += this.lineHeight * 3;
+
+    const chapterName = `${chapter.index}`;
+    this.doc.text(chapterName, this.xMid, this.yPos, { align: "center" });
+    this.yPos += this.lineHeight;
+
     this.doc.setFontSize(14);
 
-    const text = `${chapter.index}. ${chapter.name.toUpperCase()}`;
+    const text = `${chapter.name.toUpperCase()}`;
     const texts = this.doc.splitTextToSize(text, this.pWidth);
-    this.render(texts);
 
-    this.yPos += this.lineHeight;
+    for (let i = 0; i < texts.length; i++) {
+      if (this.yPos > this.pHeight) {
+        this.doc.addPage();
+        this.yPos = dims.padding;
+      }
+
+      this.doc.text(texts[i], this.xMid, this.yPos, { align: "center" });
+      this.yPos += this.lineHeight;
+    }
+
+    this.yPos += this.lineHeight * 6;
   }
 
   private writeSection(section: Section): void {
@@ -118,12 +139,33 @@ export class Writer {
     this.doc.setFont("Alegreya", "italic");
     this.doc.setFontSize(14);
 
-    const w = this.pWidth;
-    const texts = this.doc.splitTextToSize(quote.content, w);
-    this.render(texts, { align: "justify" });
+    const w = this.pWidth * .80;
+    const content_xpos = this.pWidth * .35;
 
-    const texts2 = this.doc.splitTextToSize(quote.verse, w);
-    this.render(texts2);
+    const texts = this.doc.splitTextToSize(quote.content, w);
+    for (let i = 0; i < texts.length; i++) {
+      if (this.yPos > this.pHeight) {
+        this.doc.addPage();
+        this.yPos = dims.padding;
+      }
+
+      this.doc.text(texts[i], content_xpos, this.yPos, { align: "justify" });
+      this.yPos += this.lineHeight;
+    }
+
+    const verse = `– ${quote.verse}`;
+    const verse_xpos = this.pWidth - 20;
+
+    const texts2 = this.doc.splitTextToSize(verse, this.pWidth);
+    for (let i = 0; i < texts2.length; i++) {
+      if (this.yPos > this.pHeight) {
+        this.doc.addPage();
+        this.yPos = dims.padding;
+      }
+
+      this.doc.text(texts2[i], verse_xpos, this.yPos, { align: "left" });
+      this.yPos += this.lineHeight;
+    }
 
     this.yPos += this.lineHeight * 2;
   }
@@ -131,7 +173,31 @@ export class Writer {
   private writeCover(book: Book): void {
     this.doc.setFont("Alegreya", "bold");
     this.doc.setFontSize(30);
-    this.render([book.title]);
+
+    this.doc.setFillColor("#000000");
+
+    // rendering the book title
+    const w = this.pWidth * .75;
+    const texts = this.doc.splitTextToSize(book.title, w);
+    const text_height = this.doc.getLineHeight() * texts.length;
+    this.yPos = (this.doc.internal.pageSize.getHeight() - text_height) / 2;
+
+    for (let i = 0; i < texts.length; i++) {
+      this.doc.text(texts[i], this.xMid, this.yPos, { align: "center" });
+      this.yPos += this.lineHeight;
+    }
+
+    // rendering book chapters
+    this.doc.addPage();
+
+    this.xPos = dims.padding;
+    this.yPos = dims.padding;
+
+    this.doc.setFont("GowunBatang", "bold");
+    this.doc.setFontSize(14);
+
+    this.doc.text("CHAPTERS", this.xPos, this.yPos);
+    this.yPos += this.lineHeight * 2;
 
     this.doc.setFont("GowunBatang", "normal");
     this.doc.setFontSize(14);
@@ -145,8 +211,12 @@ export class Writer {
     this.yPos = dims.padding;
   }
 
-  private save(): void {
-    this.doc.save("out.pdf");
+  private save(path?: string): void {
+    const p = path === undefined
+      ? `${Deno.cwd()}/output.pdf`
+      : `${path}/output.pdf`;
+    console.log(p);
+    this.doc.save(p);
     console.log("PDF Generated successfully");
   }
 }
