@@ -8,6 +8,8 @@ export async function getBookFrom(path: string): Promise<Book> {
     if (dirEntry.isDirectory) chapter_paths.push(dirEntry);
   }
 
+  chapter_paths.sort((a, b) => a.name.localeCompare(b.name));
+
   const chapters: Chapter[] = [];
   for (let i = 0; i < chapter_paths.length; i++) {
     const p = chapter_paths[i];
@@ -18,6 +20,8 @@ export async function getBookFrom(path: string): Promise<Book> {
       if (dirEntry.name.endsWith(".json")) continue;
       files.push(dirEntry);
     }
+
+    files.sort((a, b) => a.name.localeCompare(b.name));
 
     const sections: Section[] = [];
     for (const file of files) {
