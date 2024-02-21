@@ -4,16 +4,20 @@ import { Book, Chapter, Quote, Section } from "./types.ts";
 
 import * as dims from "./styles/dimensions.ts";
 import { Alegreya, GowunBatang } from "../../assets/fonts/fonts.ts";
+import { ChapterTOCEntry } from "./types.ts";
 
 export class Writer {
   doc: jsPDF;
   xPos: number;
   yPos: number;
 
+  pageIndex: number;
+
   constructor() {
     this.doc = new jsPDF({ unit: "pt" });
     this.xPos = dims.padding;
     this.yPos = dims.padding;
+    this.pageIndex = 1;
   }
 
   private get pHeight(): number {
@@ -44,8 +48,7 @@ export class Writer {
   private render(texts: string[], options?: TextOptionsLight): void {
     for (let i = 0; i < texts.length; i++) {
       if (this.yPos > this.pHeight) {
-        this.doc.addPage();
-        this.yPos = dims.padding;
+        this.addPage();
       }
 
       this.doc.text(texts[i], this.xPos, this.yPos, options);
@@ -53,12 +56,24 @@ export class Writer {
     }
   }
 
+  private addPage() {
+    this.doc.addPage();
+    this.yPos = dims.padding;
+    this.pageIndex += 1;
+  }
+
   write(book: Book, outputPath?: string): void {
     this.init();
 
     this.writeCover(book);
 
+    this.addPage()
+
+    const tocEntries: ChapterTOCEntry[] = [];
+
     for (let i = 0; i < book.chapters.length; i++) {
+      tocEntries.push({ chapter: book.chapters[i], pageIndex: this.pageIndex });
+
       const chap = book.chapters[i];
       this.writeChapter(chap);
 
@@ -67,12 +82,40 @@ export class Writer {
       }
 
       if (i != book.chapters.length - 1) {
-        this.doc.addPage();
-        this.yPos = dims.padding;
+        this.addPage();
       }
     }
 
+    this.writeTOC(tocEntries);
+
     this.save(outputPath);
+  }
+
+  private writeTOC(entries: ChapterTOCEntry[]): void {
+    // rendering book chapters
+    this.doc.setPage(2);
+
+    this.xPos = dims.padding;
+    this.yPos = dims.padding;
+
+    this.doc.setFont("GowunBatang", "bold");
+    this.doc.setFontSize(14);
+
+    this.doc.text("CHAPTERS", this.xPos, this.yPos);
+    this.yPos += this.lineHeight * 2;
+
+    this.doc.setFont("GowunBatang", "normal");
+    this.doc.setFontSize(14);
+
+    for (const entry of entries) {
+      const chapterName = `${entry.chapter.index}. ${entry.chapter.name}`;
+      this.doc.textWithLink(chapterName, this.xPos, this.yPos, {
+        pageNumber: entry.pageIndex,
+      });
+      this.yPos += this.lineHeight * 1.5;
+    }
+
+    this.doc.addPage();
   }
 
   /**
@@ -103,8 +146,7 @@ export class Writer {
 
     for (let i = 0; i < texts.length; i++) {
       if (this.yPos > this.pHeight) {
-        this.doc.addPage();
-        this.yPos = dims.padding;
+        this.addPage();
       }
 
       this.doc.text(texts[i], this.xMid, this.yPos, { align: "center" });
@@ -145,8 +187,7 @@ export class Writer {
     const texts = this.doc.splitTextToSize(quote.content, w);
     for (let i = 0; i < texts.length; i++) {
       if (this.yPos > this.pHeight) {
-        this.doc.addPage();
-        this.yPos = dims.padding;
+        this.addPage();
       }
 
       this.doc.text(texts[i], content_xpos, this.yPos, { align: "justify" });
@@ -159,8 +200,7 @@ export class Writer {
     const texts2 = this.doc.splitTextToSize(verse, this.pWidth);
     for (let i = 0; i < texts2.length; i++) {
       if (this.yPos > this.pHeight) {
-        this.doc.addPage();
-        this.yPos = dims.padding;
+        this.addPage();
       }
 
       this.doc.text(texts2[i], verse_xpos, this.yPos, { align: "left" });
@@ -187,28 +227,7 @@ export class Writer {
       this.yPos += this.lineHeight;
     }
 
-    // rendering book chapters
-    this.doc.addPage();
-
-    this.xPos = dims.padding;
-    this.yPos = dims.padding;
-
-    this.doc.setFont("GowunBatang", "bold");
-    this.doc.setFontSize(14);
-
-    this.doc.text("CHAPTERS", this.xPos, this.yPos);
-    this.yPos += this.lineHeight * 2;
-
-    this.doc.setFont("GowunBatang", "normal");
-    this.doc.setFontSize(14);
-
-    for (const chapter of book.chapters) {
-      this.render([`${chapter.index}. ${chapter.name}`]);
-      this.yPos += this.lineHeight * 0.5;
-    }
-
-    this.doc.addPage();
-    this.yPos = dims.padding;
+    this.addPage();
   }
 
   private save(path?: string): void {

@@ -21,3 +21,12 @@ export interface Quote {
   content: string;
   verse: string;
 }
+
+export interface ChapterTOCEntry {
+  pageIndex: number;
+  chapter: Chapter;
+}
+
+export interface TableOfContents {
+  entries: ChapterTOCEntry[];
+}
